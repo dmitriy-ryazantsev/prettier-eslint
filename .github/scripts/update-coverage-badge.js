@@ -13,8 +13,23 @@ const coveragePath = path.join(process.cwd(), 'coverage', 'coverage-summary.json
 const readmePath = path.join(process.cwd(), 'README.md');
 
 try {
+  // Check if coverage file exists
+  if (!fs.existsSync(coveragePath)) {
+    throw new Error(`Coverage file not found at ${coveragePath}. Run tests first.`);
+  }
+
+  // Check if README exists
+  if (!fs.existsSync(readmePath)) {
+    throw new Error(`README.md not found at ${readmePath}`);
+  }
+
   // Read coverage data
   const coverageData = JSON.parse(fs.readFileSync(coveragePath, 'utf8'));
+  
+  if (!coverageData.total || !coverageData.total.statements) {
+    throw new Error('Invalid coverage data format');
+  }
+  
   const coveragePercent = coverageData.total.statements.pct;
   
   // Round to 2 decimal places
@@ -43,6 +58,7 @@ try {
     console.log(`✓ Updated coverage badge to ${roundedCoverage}%`);
   } else {
     console.error('⚠ Could not find coverage badge in README.md');
+    console.error('Expected badge format: ![Code Coverage](https://img.shields.io/badge/coverage-...)');
     process.exit(1);
   }
   
