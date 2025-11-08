@@ -11,6 +11,8 @@ jobs:
   update-coverage-badge:
     name: Update Coverage Badge
     runs-on: ubuntu-latest
+    # Only run on PRs from the same repo (not forks) or on push to main/master
+    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
     permissions:
       contents: write
       pull-requests: write
@@ -19,7 +21,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.head_ref }}
+          ref: ${{ github.head_ref || github.ref }}
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup Node.js
