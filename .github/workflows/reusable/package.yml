@@ -1,0 +1,38 @@
+---
+name: Package
+
+on:
+  workflow_call:
+
+jobs:
+  package:
+    name: Package Extension
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build extension
+        run: npm run package
+
+      - name: Package extension
+        run: npx @vscode/vsce package
+
+      - name: Upload VSIX artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: vscode-extension
+          path: '*.vsix'
+          retention-days: 30
