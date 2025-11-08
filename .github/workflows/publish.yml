@@ -17,13 +17,19 @@ name: Publish Extension
 jobs:
   lint:
     uses: ./.github/workflows/reusable/lint.yml
+    permissions:
+      contents: read
 
   test:
     uses: ./.github/workflows/reusable/test.yml
+    permissions:
+      contents: read
 
   build:
     uses: ./.github/workflows/reusable/build.yml
     needs: [lint, test]
+    permissions:
+      contents: read
 
   publish:
     name: Publish
