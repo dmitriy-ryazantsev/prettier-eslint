@@ -9,7 +9,7 @@ examples/**
 eslint.config.js
 node_modules/**
 .github/**
-esbuild.js
+webpack.config.js
 **/*.map
 .eslintrc*
 .editorconfig
