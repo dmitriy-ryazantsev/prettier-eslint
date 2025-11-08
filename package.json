@@ -1,0 +1,72 @@
+{
+  "name": "prettier-eslint",
+  "displayName": "Prettier ESLint",
+  "description": "Format your code with Prettier and ESLint integration",
+  "version": "1.0.0",
+  "publisher": "dmitriy-ryazantsev",
+  "engines": {
+    "vscode": "^1.95.0"
+  },
+  "categories": [
+    "Formatters"
+  ],
+  "activationEvents": [
+    "onLanguage:javascript",
+    "onLanguage:typescript",
+    "onLanguage:javascriptreact",
+    "onLanguage:typescriptreact",
+    "onLanguage:json",
+    "onLanguage:jsonc"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "prettier-eslint.format",
+        "title": "Format Document with Prettier-ESLint"
+      }
+    ],
+    "configuration": {
+      "type": "object",
+      "title": "Prettier ESLint",
+      "properties": {
+        "prettier-eslint.enable": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable/disable Prettier-ESLint formatting"
+        },
+        "prettier-eslint.formatOnSave": {
+          "type": "boolean",
+          "default": false,
+          "description": "Format files on save"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "package": "vsce package"
+  },
+  "keywords": [
+    "prettier",
+    "eslint",
+    "formatter",
+    "javascript",
+    "typescript"
+  ],
+  "author": "dmitriy-ryazantsev",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^20.19.24",
+    "@types/vscode": "^1.105.0",
+    "@vscode/vsce": "^3.7.0",
+    "esbuild": "^0.25.12",
+    "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "eslint": "^9.39.1",
+    "prettier": "^3.6.2"
+  }
+}
