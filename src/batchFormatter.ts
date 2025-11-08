@@ -71,6 +71,7 @@ export async function formatWorkspace(): Promise<void> {
                 try {
                     const document = await vscode.workspace.openTextDocument(file);
                     await formatDocument(document);
+                    await document.save();
                     successCount++;
                 } catch (error) {
                     console.error(`Failed to format ${file.fsPath}:`, error);

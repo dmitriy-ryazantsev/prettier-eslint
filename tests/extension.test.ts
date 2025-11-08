@@ -2,7 +2,6 @@ import { jest } from '@jest/globals';
 import * as vscode from 'vscode';
 import { activate, deactivate } from '../src/extension';
 import * as formatter from '../src/formatter';
-import * as batchFormatter from '../src/batchFormatter';
 
 jest.mock('../src/formatter');
 jest.mock('../src/batchFormatter');
