@@ -5,7 +5,7 @@ export default tseslint.config(
     js.configs.recommended,
     ...tseslint.configs.recommended,
     {
-        ignores: ['out/', 'dist/', '**/*.d.ts', 'node_modules/', 'coverage/', '__mocks__/'],
+        ignores: ['out/', 'dist/', '**/*.d.ts', 'node_modules/', 'coverage/', 'tests/__mocks__/'],
     },
     {
         rules: {

@@ -22,9 +22,9 @@ module.exports = {
   },
   moduleFileExtensions: ['ts', 'js'],
   moduleNameMapper: {
-    '^vscode$': '<rootDir>/__mocks__/vscode.ts',
-    '^prettier$': '<rootDir>/__mocks__/prettier.ts',
-    '^eslint$': '<rootDir>/__mocks__/eslint.ts'
+    '^vscode$': '<rootDir>/tests/__mocks__/vscode.ts',
+    '^prettier$': '<rootDir>/tests/__mocks__/prettier.ts',
+    '^eslint$': '<rootDir>/tests/__mocks__/eslint.ts'
   },
   transform: {
     '^.+\\.ts$': ['ts-jest', {
