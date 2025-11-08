@@ -63,6 +63,10 @@ This extension contributes the following settings:
 - The extension requires both Prettier and ESLint configurations to be present in your project
 - Some ESLint rules may conflict with Prettier formatting
 
+## Contributing
+
+This project maintains code quality through automated testing. The coverage badge above is automatically updated on every pull request to reflect the current test coverage percentage.
+
 ## Release Notes
 
 ### 1.0.0
