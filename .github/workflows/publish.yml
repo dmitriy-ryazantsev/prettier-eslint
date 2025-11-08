@@ -38,6 +38,17 @@ jobs:
       - name: Package extension
         run: npm run package
 
+      - name: Validate VSCE_PAT secret
+        run: |
+          if [ -z "${{ secrets.VSCE_PAT }}" ]; then
+            echo "::error::VSCE_PAT secret is not set. Please add the secret to your repository settings."
+            echo "To publish to VS Code Marketplace, you need to:"
+            echo "1. Create a Personal Access Token at https://dev.azure.com"
+            echo "2. Add it as a repository secret named 'VSCE_PAT'"
+            echo "3. See: https://code.visualstudio.com/api/working-with-extensions/publishing-extension"
+            exit 1
+          fi
+
       - name: Publish to VS Code Marketplace
         env:
           VSCE_PAT: ${{ secrets.VSCE_PAT }}
