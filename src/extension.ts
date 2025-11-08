@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import { formatDocument } from './formatter';
+import { formatWorkspace } from './batchFormatter';
 
 export function activate(context: vscode.ExtensionContext) {
     console.log('Prettier-ESLint extension is now active');
@@ -24,6 +25,20 @@ export function activate(context: vscode.ExtensionContext) {
     );
 
     context.subscriptions.push(formatCommand);
+
+    // Register format workspace command
+    const formatWorkspaceCommand = vscode.commands.registerCommand(
+        'prettier-eslint.formatWorkspace',
+        async () => {
+            try {
+                await formatWorkspace();
+            } catch (error) {
+                vscode.window.showErrorMessage(`Workspace formatting failed: ${error}`);
+            }
+        }
+    );
+
+    context.subscriptions.push(formatWorkspaceCommand);
 
     // Register format on save
     const formatOnSaveDisposable = vscode.workspace.onWillSaveTextDocument(

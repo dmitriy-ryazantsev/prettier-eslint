@@ -24,6 +24,10 @@
       {
         "command": "prettier-eslint.format",
         "title": "Format Document with Prettier-ESLint"
+      },
+      {
+        "command": "prettier-eslint.formatWorkspace",
+        "title": "Format Workspace with Prettier-ESLint"
       }
     ],
     "configuration": {
