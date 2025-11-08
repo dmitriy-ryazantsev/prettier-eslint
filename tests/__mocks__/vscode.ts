@@ -17,6 +17,8 @@ export const workspace = {
     applyEdit: jest.fn(),
     workspaceFolders: undefined,
     findFiles: jest.fn(),
+    textDocuments: [],
+    openTextDocument: jest.fn(),
 };
 
 export const WorkspaceEdit = jest.fn().mockImplementation(() => ({
