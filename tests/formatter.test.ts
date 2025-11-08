@@ -1,6 +1,6 @@
 import { jest } from '@jest/globals';
 import * as vscode from 'vscode';
-import { formatDocument } from './formatter';
+import { formatDocument } from '../src/formatter';
 import * as prettier from 'prettier';
 import { ESLint } from 'eslint';
 
