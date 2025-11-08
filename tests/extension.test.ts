@@ -1,9 +1,9 @@
 import { jest } from '@jest/globals';
 import * as vscode from 'vscode';
-import { activate, deactivate } from './extension';
-import * as formatter from './formatter';
+import { activate, deactivate } from '../src/extension';
+import * as formatter from '../src/formatter';
 
-jest.mock('./formatter');
+jest.mock('../src/formatter');
 
 describe('extension', () => {
     let mockContext: any;
