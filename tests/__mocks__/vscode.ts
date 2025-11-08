@@ -6,6 +6,8 @@ export const window = {
     activeTextEditor: undefined,
     showErrorMessage: jest.fn(),
     showInformationMessage: jest.fn(),
+    showWarningMessage: jest.fn(),
+    withProgress: jest.fn(),
 };
 
 export const workspace = {
@@ -13,6 +15,8 @@ export const workspace = {
     onWillSaveTextDocument: jest.fn(),
     getWorkspaceFolder: jest.fn(),
     applyEdit: jest.fn(),
+    workspaceFolders: undefined,
+    findFiles: jest.fn(),
 };
 
 export const WorkspaceEdit = jest.fn().mockImplementation(() => ({
@@ -26,4 +30,15 @@ export const Range = jest.fn().mockImplementation((start: any, end: any) => ({
 
 export const Uri = {
     file: jest.fn((path: string) => ({ fsPath: path })),
+};
+
+export const RelativePattern = jest.fn().mockImplementation((folder: any, pattern: string) => ({
+    folder,
+    pattern,
+}));
+
+export const ProgressLocation = {
+    Notification: 15,
+    Window: 10,
+    SourceControl: 1,
 };

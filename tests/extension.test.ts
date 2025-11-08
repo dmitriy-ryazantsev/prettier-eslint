@@ -2,8 +2,10 @@ import { jest } from '@jest/globals';
 import * as vscode from 'vscode';
 import { activate, deactivate } from '../src/extension';
 import * as formatter from '../src/formatter';
+import * as batchFormatter from '../src/batchFormatter';
 
 jest.mock('../src/formatter');
+jest.mock('../src/batchFormatter');
 
 describe('extension', () => {
     let mockContext: any;
@@ -34,6 +36,22 @@ describe('extension', () => {
             expect(mockContext.subscriptions).toContain(mockDisposable);
         });
 
+        it('should register format workspace command', () => {
+            // Arrange
+            const mockDisposable = { dispose: jest.fn() };
+            (vscode.commands.registerCommand as any).mockReturnValue(mockDisposable);
+            (vscode.workspace.onWillSaveTextDocument as any).mockReturnValue(mockDisposable);
+
+            // Act
+            activate(mockContext);
+
+            // Assert
+            expect(vscode.commands.registerCommand).toHaveBeenCalledWith(
+                'prettier-eslint.formatWorkspace',
+                expect.any(Function)
+            );
+        });
+
         it('should register format on save handler', () => {
             // Arrange
             const mockDisposable = { dispose: jest.fn() };
@@ -47,16 +65,18 @@ describe('extension', () => {
             expect(vscode.workspace.onWillSaveTextDocument).toHaveBeenCalledWith(
                 expect.any(Function)
             );
-            expect(mockContext.subscriptions).toHaveLength(2);
+            expect(mockContext.subscriptions).toHaveLength(3);
         });
 
         describe('format command', () => {
             it('should show error when no active editor', async () => {
                 // Arrange
-                let commandHandler: (...args: any[]) => any = () => {};
+                let formatCommandHandler: (...args: any[]) => any = () => {};
                 (vscode.commands.registerCommand as any).mockImplementation(
                     (command: string, handler: (...args: any[]) => any) => {
-                        commandHandler = handler;
+                        if (command === 'prettier-eslint.format') {
+                            formatCommandHandler = handler;
+                        }
                         return { dispose: jest.fn() };
                     }
                 );
@@ -66,7 +86,7 @@ describe('extension', () => {
                 activate(mockContext);
 
                 // Act
-                await commandHandler();
+                await formatCommandHandler();
 
                 // Assert
                 expect(vscode.window.showErrorMessage).toHaveBeenCalledWith('No active editor found');
@@ -75,10 +95,12 @@ describe('extension', () => {
 
             it('should format document and show success message', async () => {
                 // Arrange
-                let commandHandler: (...args: any[]) => any = () => {};
+                let formatCommandHandler: (...args: any[]) => any = () => {};
                 (vscode.commands.registerCommand as any).mockImplementation(
                     (command: string, handler: (...args: any[]) => any) => {
-                        commandHandler = handler;
+                        if (command === 'prettier-eslint.format') {
+                            formatCommandHandler = handler;
+                        }
                         return { dispose: jest.fn() };
                     }
                 );
@@ -93,7 +115,7 @@ describe('extension', () => {
                 activate(mockContext);
 
                 // Act
-                await commandHandler();
+                await formatCommandHandler();
 
                 // Assert
                 expect(formatter.formatDocument).toHaveBeenCalledWith(mockEditor.document);
@@ -104,10 +126,12 @@ describe('extension', () => {
 
             it('should show error message when formatting fails', async () => {
                 // Arrange
-                let commandHandler: (...args: any[]) => any = () => {};
+                let formatCommandHandler: (...args: any[]) => any = () => {};
                 (vscode.commands.registerCommand as any).mockImplementation(
                     (command: string, handler: (...args: any[]) => any) => {
-                        commandHandler = handler;
+                        if (command === 'prettier-eslint.format') {
+                            formatCommandHandler = handler;
+                        }
                         return { dispose: jest.fn() };
                     }
                 );
@@ -122,7 +146,7 @@ describe('extension', () => {
                 activate(mockContext);
 
                 // Act
-                await commandHandler();
+                await formatCommandHandler();
 
                 // Assert
                 expect(vscode.window.showErrorMessage).toHaveBeenCalledWith(
