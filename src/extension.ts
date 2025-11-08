@@ -5,7 +5,7 @@ export function activate(context: vscode.ExtensionContext) {
     console.log('Prettier-ESLint extension is now active');
 
     // Register format command
-    let formatCommand = vscode.commands.registerCommand(
+    const formatCommand = vscode.commands.registerCommand(
         'prettier-eslint.format',
         async () => {
             const editor = vscode.window.activeTextEditor;
@@ -26,7 +26,7 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(formatCommand);
 
     // Register format on save
-    let formatOnSaveDisposable = vscode.workspace.onWillSaveTextDocument(
+    const formatOnSaveDisposable = vscode.workspace.onWillSaveTextDocument(
         async (event) => {
             const config = vscode.workspace.getConfiguration('prettier-eslint');
             const formatOnSave = config.get<boolean>('formatOnSave', false);
