@@ -2,6 +2,13 @@
 .vscode-test/**
 src/**
 .gitignore
+.prettierrc
 tsconfig.json
-node_modules/**
 *.vsix
+examples/**
+eslint.config.js
+node_modules/.bin/**
+node_modules/**/.github/**
+node_modules/**/test/**
+node_modules/**/tests/**
+node_modules/**/*.md
