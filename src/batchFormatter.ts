@@ -12,7 +12,7 @@ const SUPPORTED_EXTENSIONS = [
 ];
 
 /**
- * Format all files in a workspace folder
+ * Format only changed (dirty) files in the workspace
  */
 export async function formatWorkspace(): Promise<void> {
     const workspaceFolders = vscode.workspace.workspaceFolders;
@@ -30,17 +30,17 @@ export async function formatWorkspace(): Promise<void> {
         return;
     }
 
-    // Find all supported files
-    const files = await findSupportedFiles(workspaceFolders);
+    // Find only changed (dirty) files
+    const files = getChangedFiles();
     
     if (files.length === 0) {
-        vscode.window.showInformationMessage('No supported files found to format');
+        vscode.window.showInformationMessage('No changed files found to format');
         return;
     }
 
     // Ask for confirmation
     const confirmation = await vscode.window.showWarningMessage(
-        `Format ${files.length} file(s) in workspace?`,
+        `Format ${files.length} changed file(s)?`,
         { modal: true },
         'Yes',
         'No'
@@ -93,26 +93,29 @@ export async function formatWorkspace(): Promise<void> {
 }
 
 /**
- * Find all supported files in workspace folders
+ * Get only changed (dirty) files that have unsaved changes
  */
-async function findSupportedFiles(
-    workspaceFolders: readonly vscode.WorkspaceFolder[]
-): Promise<vscode.Uri[]> {
-    const files: vscode.Uri[] = [];
-
-    for (const folder of workspaceFolders) {
-        const pattern = new vscode.RelativePattern(
-            folder,
-            `**/*{${SUPPORTED_EXTENSIONS.join(',')}}`
-        );
-
-        const foundFiles = await vscode.workspace.findFiles(
-            pattern,
-            '**/node_modules/**'
-        );
-
-        files.push(...foundFiles);
+function getChangedFiles(): vscode.Uri[] {
+    const changedFiles: vscode.Uri[] = [];
+    
+    // Get all text documents that have unsaved changes
+    for (const document of vscode.workspace.textDocuments) {
+        // Skip if document is not dirty (no unsaved changes)
+        if (!document.isDirty) {
+            continue;
+        }
+        
+        // Skip untitled documents
+        if (document.uri.scheme !== 'file') {
+            continue;
+        }
+        
+        // Check if file has a supported extension
+        const ext = path.extname(document.fileName);
+        if (SUPPORTED_EXTENSIONS.includes(ext)) {
+            changedFiles.push(document.uri);
+        }
     }
-
-    return files;
+    
+    return changedFiles;
 }

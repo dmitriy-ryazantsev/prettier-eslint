@@ -46,7 +46,7 @@ describe('batchFormatter', () => {
             expect(vscode.window.showWarningMessage).toHaveBeenCalledWith('Prettier-ESLint is disabled');
         });
 
-        it('should show message when no files found', async () => {
+        it('should show message when no changed files found', async () => {
             // Arrange
             const mockWorkspaceFolder = {
                 uri: { fsPath: '/test/workspace' },
@@ -62,14 +62,14 @@ describe('batchFormatter', () => {
                 }),
             };
             (vscode.workspace.getConfiguration as any).mockReturnValue(mockConfig);
-            (vscode.workspace.findFiles as any).mockResolvedValue([]);
+            (vscode.workspace as any).textDocuments = [];
 
             // Act
             await formatWorkspace();
 
             // Assert
             expect(vscode.window.showInformationMessage).toHaveBeenCalledWith(
-                'No supported files found to format'
+                'No changed files found to format'
             );
         });
     });

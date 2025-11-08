@@ -27,7 +27,7 @@
       },
       {
         "command": "prettier-eslint.formatWorkspace",
-        "title": "Format Workspace with Prettier-ESLint"
+        "title": "Format Changed Files with Prettier-ESLint"
       }
     ],
     "configuration": {
