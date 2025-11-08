@@ -1,8 +1,6 @@
 import { jest } from '@jest/globals';
 import * as vscode from 'vscode';
 import { formatWorkspace } from '../src/batchFormatter';
-import * as formatter from '../src/formatter';
-
 jest.mock('../src/formatter');
 
 describe('batchFormatter', () => {
