@@ -9,12 +9,12 @@ name: Build
 
 jobs:
   lint:
-    uses: ./.github/workflows/reusable/lint.yml
+    uses: ./.github/workflows/reusable-lint.yml
     permissions:
       contents: read
 
   test:
-    uses: ./.github/workflows/reusable/test.yml
+    uses: ./.github/workflows/reusable-test.yml
     permissions:
       contents: read
 
@@ -65,13 +65,13 @@ jobs:
           git push
 
   build:
-    uses: ./.github/workflows/reusable/build.yml
+    uses: ./.github/workflows/reusable-build.yml
     needs: [lint, test]
     permissions:
       contents: read
 
   package:
-    uses: ./.github/workflows/reusable/package.yml
+    uses: ./.github/workflows/reusable-package.yml
     needs: [build]
     permissions:
       contents: read
