@@ -1,6 +1,10 @@
 import * as vscode from 'vscode';
-import { formatDocument } from './formatter';
+import { formatDocument, clearCaches } from './formatter';
 import { formatWorkspace } from './batchFormatter';
+
+// Debounce map for format on save per document
+const formatDebounceMap = new Map<string, NodeJS.Timeout>();
+const DEBOUNCE_DELAY = 300; // milliseconds
 
 export function activate(context: vscode.ExtensionContext) {
     console.log('Prettier-ESLint extension is now active');
@@ -40,7 +44,32 @@ export function activate(context: vscode.ExtensionContext) {
 
     context.subscriptions.push(formatWorkspaceCommand);
 
-    // Register format on save
+    // Watch for config file changes and clear caches
+    const configWatcher = vscode.workspace.createFileSystemWatcher(
+        '**/{.prettierrc*,.eslintrc*,eslint.config.*,prettier.config.*}',
+        false,
+        false,
+        false
+    );
+
+    configWatcher.onDidChange(() => {
+        console.log('Config file changed, clearing caches');
+        clearCaches();
+    });
+
+    configWatcher.onDidCreate(() => {
+        console.log('Config file created, clearing caches');
+        clearCaches();
+    });
+
+    configWatcher.onDidDelete(() => {
+        console.log('Config file deleted, clearing caches');
+        clearCaches();
+    });
+
+    context.subscriptions.push(configWatcher);
+
+    // Register format on save with debouncing
     const formatOnSaveDisposable = vscode.workspace.onWillSaveTextDocument(
         async (event) => {
             const config = vscode.workspace.getConfiguration('prettier-eslint');
@@ -62,10 +91,27 @@ export function activate(context: vscode.ExtensionContext) {
             ];
 
             if (supportedLanguages.includes(document.languageId)) {
+                const documentKey = document.uri.toString();
+                
+                // Clear existing debounce timer
+                const existingTimer = formatDebounceMap.get(documentKey);
+                if (existingTimer) {
+                    clearTimeout(existingTimer);
+                }
+
                 event.waitUntil(
-                    formatDocument(document).catch((error) => {
-                        console.error('Format on save failed:', error);
-                        return Promise.resolve();
+                    new Promise<void>((resolve) => {
+                        const timer = setTimeout(async () => {
+                            formatDebounceMap.delete(documentKey);
+                            try {
+                                await formatDocument(document);
+                            } catch (error) {
+                                console.error('Format on save failed:', error);
+                            }
+                            resolve();
+                        }, DEBOUNCE_DELAY);
+                        
+                        formatDebounceMap.set(documentKey, timer);
                     })
                 );
             }
@@ -75,4 +121,11 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(formatOnSaveDisposable);
 }
 
-export function deactivate() {}
+export function deactivate() {
+    // Clear all debounce timers
+    formatDebounceMap.forEach(timer => clearTimeout(timer));
+    formatDebounceMap.clear();
+    
+    // Clear all caches
+    clearCaches();
+}

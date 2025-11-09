@@ -1,6 +1,6 @@
 import { jest } from '@jest/globals';
 import * as vscode from 'vscode';
-import { formatDocument } from '../src/formatter';
+import { formatDocument, clearCaches } from '../src/formatter';
 import * as prettier from 'prettier';
 import { ESLint } from 'eslint';
 
@@ -11,6 +11,7 @@ describe('formatter', () => {
 
     beforeEach(() => {
         jest.clearAllMocks();
+        clearCaches(); // Clear caches before each test
 
         // Setup mock document
         mockDocument = {
@@ -69,6 +70,62 @@ describe('formatter', () => {
                 filePath: '/test/file.js',
             });
             expect(vscode.workspace.applyEdit).toHaveBeenCalled();
+        });
+
+        it('should use cached prettier config on second call', async () => {
+            // Arrange
+            const formattedByPrettier = 'const x = 1;\n';
+            const formattedByESLint = 'const x = 1;\n';
+
+            (vscode.workspace.getWorkspaceFolder as any).mockReturnValue({
+                uri: { fsPath: '/test' },
+            });
+            (prettier.resolveConfig as any).mockResolvedValue({ semi: true });
+            (prettier.format as any).mockResolvedValue(formattedByPrettier);
+            
+            const mockLintText = jest.fn<any>().mockResolvedValue([
+                { output: formattedByESLint },
+            ]);
+            (ESLint as any).mockImplementation(() => ({
+                lintText: mockLintText,
+            }));
+            (vscode.workspace.applyEdit as any).mockResolvedValue(true);
+
+            // Act - format twice
+            await formatDocument(mockDocument);
+            await formatDocument(mockDocument);
+
+            // Assert - prettier.resolveConfig should only be called once due to caching
+            expect(prettier.resolveConfig).toHaveBeenCalledTimes(1);
+            expect(prettier.format).toHaveBeenCalledTimes(2);
+        });
+
+        it('should use cached ESLint instance on second call', async () => {
+            // Arrange
+            const formattedByPrettier = 'const x = 1;\n';
+            const formattedByESLint = 'const x = 1;\n';
+
+            (vscode.workspace.getWorkspaceFolder as any).mockReturnValue({
+                uri: { fsPath: '/test' },
+            });
+            (prettier.resolveConfig as any).mockResolvedValue({ semi: true });
+            (prettier.format as any).mockResolvedValue(formattedByPrettier);
+            
+            const mockLintText = jest.fn<any>().mockResolvedValue([
+                { output: formattedByESLint },
+            ]);
+            (ESLint as any).mockImplementation(() => ({
+                lintText: mockLintText,
+            }));
+            (vscode.workspace.applyEdit as any).mockResolvedValue(true);
+
+            // Act - format twice
+            await formatDocument(mockDocument);
+            await formatDocument(mockDocument);
+
+            // Assert - ESLint constructor should only be called once due to caching
+            expect(ESLint).toHaveBeenCalledTimes(1);
+            expect(mockLintText).toHaveBeenCalledTimes(2);
         });
 
         it('should format document using file directory when no workspace folder', async () => {
@@ -192,6 +249,37 @@ describe('formatter', () => {
                 expect.anything(),
                 formattedByPrettier
             );
+        });
+    });
+
+    describe('clearCaches', () => {
+        it('should clear caches and force new config resolution', async () => {
+            // Arrange
+            const formattedByPrettier = 'const x = 1;\n';
+            const formattedByESLint = 'const x = 1;\n';
+
+            (vscode.workspace.getWorkspaceFolder as any).mockReturnValue({
+                uri: { fsPath: '/test' },
+            });
+            (prettier.resolveConfig as any).mockResolvedValue({ semi: true });
+            (prettier.format as any).mockResolvedValue(formattedByPrettier);
+            
+            const mockLintText = jest.fn<any>().mockResolvedValue([
+                { output: formattedByESLint },
+            ]);
+            (ESLint as any).mockImplementation(() => ({
+                lintText: mockLintText,
+            }));
+            (vscode.workspace.applyEdit as any).mockResolvedValue(true);
+
+            // Act - format, clear cache, format again
+            await formatDocument(mockDocument);
+            clearCaches();
+            await formatDocument(mockDocument);
+
+            // Assert - prettier.resolveConfig and ESLint should be called twice
+            expect(prettier.resolveConfig).toHaveBeenCalledTimes(2);
+            expect(ESLint).toHaveBeenCalledTimes(2);
         });
     });
 });

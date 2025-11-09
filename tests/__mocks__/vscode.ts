@@ -19,6 +19,7 @@ export const workspace = {
     findFiles: jest.fn(),
     textDocuments: [],
     openTextDocument: jest.fn(),
+    createFileSystemWatcher: jest.fn(),
 };
 
 export const WorkspaceEdit = jest.fn().mockImplementation(() => ({
