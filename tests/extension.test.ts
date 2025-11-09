@@ -15,6 +15,13 @@ describe('extension', () => {
         mockContext = {
             subscriptions: [],
         };
+
+        // Default mock for file watcher
+        (vscode.workspace.createFileSystemWatcher as any).mockReturnValue({
+            onDidChange: jest.fn().mockReturnValue({ dispose: jest.fn() }),
+            onDidCreate: jest.fn().mockReturnValue({ dispose: jest.fn() }),
+            onDidDelete: jest.fn().mockReturnValue({ dispose: jest.fn() }),
+        });
     });
 
     describe('activate', () => {
@@ -23,6 +30,11 @@ describe('extension', () => {
             const mockDisposable = { dispose: jest.fn() };
             (vscode.commands.registerCommand as any).mockReturnValue(mockDisposable);
             (vscode.workspace.onWillSaveTextDocument as any).mockReturnValue(mockDisposable);
+            (vscode.workspace.createFileSystemWatcher as any).mockReturnValue({
+                onDidChange: jest.fn().mockReturnValue(mockDisposable),
+                onDidCreate: jest.fn().mockReturnValue(mockDisposable),
+                onDidDelete: jest.fn().mockReturnValue(mockDisposable),
+            });
 
             // Act
             activate(mockContext);
@@ -40,6 +52,11 @@ describe('extension', () => {
             const mockDisposable = { dispose: jest.fn() };
             (vscode.commands.registerCommand as any).mockReturnValue(mockDisposable);
             (vscode.workspace.onWillSaveTextDocument as any).mockReturnValue(mockDisposable);
+            (vscode.workspace.createFileSystemWatcher as any).mockReturnValue({
+                onDidChange: jest.fn().mockReturnValue(mockDisposable),
+                onDidCreate: jest.fn().mockReturnValue(mockDisposable),
+                onDidDelete: jest.fn().mockReturnValue(mockDisposable),
+            });
 
             // Act
             activate(mockContext);
@@ -56,6 +73,11 @@ describe('extension', () => {
             const mockDisposable = { dispose: jest.fn() };
             (vscode.commands.registerCommand as any).mockReturnValue(mockDisposable);
             (vscode.workspace.onWillSaveTextDocument as any).mockReturnValue(mockDisposable);
+            (vscode.workspace.createFileSystemWatcher as any).mockReturnValue({
+                onDidChange: jest.fn().mockReturnValue(mockDisposable),
+                onDidCreate: jest.fn().mockReturnValue(mockDisposable),
+                onDidDelete: jest.fn().mockReturnValue(mockDisposable),
+            });
 
             // Act
             activate(mockContext);
@@ -64,7 +86,88 @@ describe('extension', () => {
             expect(vscode.workspace.onWillSaveTextDocument).toHaveBeenCalledWith(
                 expect.any(Function)
             );
-            expect(mockContext.subscriptions).toHaveLength(3);
+            expect(vscode.workspace.createFileSystemWatcher).toHaveBeenCalledWith(
+                '**/{.prettierrc*,.eslintrc*,eslint.config.*,prettier.config.*}',
+                false,
+                false,
+                false
+            );
+            expect(mockContext.subscriptions).toHaveLength(4);
+        });
+
+        it('should clear caches when config files change', () => {
+            // Arrange
+            let changeHandler: (() => void) | undefined;
+            const mockDisposable = { dispose: jest.fn() };
+            (vscode.commands.registerCommand as any).mockReturnValue(mockDisposable);
+            (vscode.workspace.onWillSaveTextDocument as any).mockReturnValue(mockDisposable);
+            (vscode.workspace.createFileSystemWatcher as any).mockReturnValue({
+                onDidChange: jest.fn((handler: () => void) => {
+                    changeHandler = handler;
+                    return mockDisposable;
+                }),
+                onDidCreate: jest.fn().mockReturnValue(mockDisposable),
+                onDidDelete: jest.fn().mockReturnValue(mockDisposable),
+            });
+
+            jest.spyOn(formatter, 'clearCaches');
+
+            // Act
+            activate(mockContext);
+            changeHandler?.();
+
+            // Assert
+            expect(formatter.clearCaches).toHaveBeenCalled();
+        });
+
+        it('should clear caches when config files are created', () => {
+            // Arrange
+            let createHandler: (() => void) | undefined;
+            const mockDisposable = { dispose: jest.fn() };
+            (vscode.commands.registerCommand as any).mockReturnValue(mockDisposable);
+            (vscode.workspace.onWillSaveTextDocument as any).mockReturnValue(mockDisposable);
+            (vscode.workspace.createFileSystemWatcher as any).mockReturnValue({
+                onDidChange: jest.fn().mockReturnValue(mockDisposable),
+                onDidCreate: jest.fn((handler: () => void) => {
+                    createHandler = handler;
+                    return mockDisposable;
+                }),
+                onDidDelete: jest.fn().mockReturnValue(mockDisposable),
+            });
+
+            jest.spyOn(formatter, 'clearCaches');
+
+            // Act
+            activate(mockContext);
+            createHandler?.();
+
+            // Assert
+            expect(formatter.clearCaches).toHaveBeenCalled();
+        });
+
+        it('should clear caches when config files are deleted', () => {
+            // Arrange
+            let deleteHandler: (() => void) | undefined;
+            const mockDisposable = { dispose: jest.fn() };
+            (vscode.commands.registerCommand as any).mockReturnValue(mockDisposable);
+            (vscode.workspace.onWillSaveTextDocument as any).mockReturnValue(mockDisposable);
+            (vscode.workspace.createFileSystemWatcher as any).mockReturnValue({
+                onDidChange: jest.fn().mockReturnValue(mockDisposable),
+                onDidCreate: jest.fn().mockReturnValue(mockDisposable),
+                onDidDelete: jest.fn((handler: () => void) => {
+                    deleteHandler = handler;
+                    return mockDisposable;
+                }),
+            });
+
+            jest.spyOn(formatter, 'clearCaches');
+
+            // Act
+            activate(mockContext);
+            deleteHandler?.();
+
+            // Assert
+            expect(formatter.clearCaches).toHaveBeenCalled();
         });
 
         describe('format command', () => {
@@ -525,8 +628,12 @@ describe('extension', () => {
 
     describe('deactivate', () => {
         it('should exist and be callable', () => {
+            // Arrange
+            jest.spyOn(formatter, 'clearCaches');
+
             // Act & Assert
             expect(() => deactivate()).not.toThrow();
+            expect(formatter.clearCaches).toHaveBeenCalled();
         });
     });
 });

@@ -11,6 +11,9 @@ const SUPPORTED_EXTENSIONS = [
     '.jsonc'
 ];
 
+// Maximum number of files to format in parallel
+const MAX_CONCURRENT_FORMATS = 5;
+
 /**
  * Format only changed (dirty) files in the workspace
  */
@@ -50,7 +53,7 @@ export async function formatWorkspace(): Promise<void> {
         return;
     }
 
-    // Format files with progress
+    // Format files with progress and parallel processing
     await vscode.window.withProgress(
         {
             location: vscode.ProgressLocation.Notification,
@@ -60,14 +63,10 @@ export async function formatWorkspace(): Promise<void> {
         async (progress) => {
             let successCount = 0;
             let errorCount = 0;
+            let processedCount = 0;
 
-            for (let i = 0; i < files.length; i++) {
-                const file = files[i];
-                progress.report({
-                    message: `${i + 1}/${files.length}: ${path.basename(file.fsPath)}`,
-                    increment: (100 / files.length)
-                });
-
+            // Process files in batches for parallel execution
+            await processBatch(files, MAX_CONCURRENT_FORMATS, async (file) => {
                 try {
                     const document = await vscode.workspace.openTextDocument(file);
                     await formatDocument(document);
@@ -76,8 +75,14 @@ export async function formatWorkspace(): Promise<void> {
                 } catch (error) {
                     console.error(`Failed to format ${file.fsPath}:`, error);
                     errorCount++;
+                } finally {
+                    processedCount++;
+                    progress.report({
+                        message: `${processedCount}/${files.length}: ${path.basename(file.fsPath)}`,
+                        increment: (100 / files.length)
+                    });
                 }
-            }
+            });
 
             // Show summary
             if (errorCount === 0) {
@@ -91,6 +96,31 @@ export async function formatWorkspace(): Promise<void> {
             }
         }
     );
+}
+
+/**
+ * Process items in parallel batches with concurrency control
+ */
+async function processBatch<T>(
+    items: T[],
+    concurrency: number,
+    processor: (item: T) => Promise<void>
+): Promise<void> {
+    const executing: Promise<void>[] = [];
+    
+    for (const item of items) {
+        const promise = processor(item).then(() => {
+            executing.splice(executing.indexOf(promise), 1);
+        });
+        
+        executing.push(promise);
+        
+        if (executing.length >= concurrency) {
+            await Promise.race(executing);
+        }
+    }
+    
+    await Promise.all(executing);
 }
 
 /**

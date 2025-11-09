@@ -3,6 +3,30 @@ import * as prettier from 'prettier';
 import { ESLint } from 'eslint';
 import * as path from 'path';
 
+// Cache for ESLint instances per workspace
+const eslintCache = new Map<string, ESLint>();
+
+// Cache for Prettier configs per file path
+const prettierConfigCache = new Map<string, prettier.Options | null>();
+
+/**
+ * Clear all caches (useful for testing and when config changes)
+ */
+export function clearCaches(): void {
+    eslintCache.clear();
+    prettierConfigCache.clear();
+}
+
+/**
+ * Get or create an ESLint instance for a given workspace
+ */
+function getESLintInstance(cwd: string): ESLint {
+    if (!eslintCache.has(cwd)) {
+        eslintCache.set(cwd, new ESLint({ cwd, fix: true }));
+    }
+    return eslintCache.get(cwd)!;
+}
+
 export async function formatDocument(
     document: vscode.TextDocument
 ): Promise<void> {
@@ -36,7 +60,14 @@ async function formatWithPrettier(
     filePath: string
 ): Promise<string> {
     try {
-        const options = await prettier.resolveConfig(filePath);
+        // Check cache first
+        let options = prettierConfigCache.get(filePath);
+        if (options === undefined) {
+            // Not in cache, resolve and cache it
+            options = await prettier.resolveConfig(filePath);
+            prettierConfigCache.set(filePath, options);
+        }
+        
         const formatted = await prettier.format(text, {
             ...options,
             filepath: filePath,
@@ -54,10 +85,8 @@ async function fixWithESLint(
     cwd: string
 ): Promise<string> {
     try {
-        const eslint = new ESLint({
-            cwd,
-            fix: true,
-        });
+        // Use cached ESLint instance
+        const eslint = getESLintInstance(cwd);
 
         const results = await eslint.lintText(text, {
             filePath,
