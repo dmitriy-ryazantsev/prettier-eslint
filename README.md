@@ -1,6 +1,6 @@
 # Prettier ESLint
 
-![Code Coverage](https://img.shields.io/badge/coverage-96.85%25-brightgreen)
+![Code Coverage](https://img.shields.io/badge/coverage-97.24%25-brightgreen)
 
 A Visual Studio Code extension that formats your code using Prettier and then applies ESLint fixes.
 
