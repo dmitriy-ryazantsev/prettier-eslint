@@ -10,8 +10,10 @@ export function activate(context: vscode.ExtensionContext) {
         'prettier-eslint.format',
         async () => {
             const editor = vscode.window.activeTextEditor;
+
             if (!editor) {
                 vscode.window.showErrorMessage('No active editor found');
+
                 return;
             }
 
@@ -90,6 +92,7 @@ export function activate(context: vscode.ExtensionContext) {
                 event.waitUntil(
                     formatDocument(document).catch((error) => {
                         console.error('Format on save failed:', error);
+
                         return Promise.resolve();
                     })
                 );
