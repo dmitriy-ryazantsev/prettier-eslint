@@ -91,7 +91,7 @@ async function fixWithESLint(
         // Use cached ESLint instance
         const eslint = getESLintInstance(cwd);
 
-        const results = await eslint.lintText(text, {filePath,});
+        const results = await eslint.lintText(text, {filePath});
 
         if (results.length > 0 && results[0].output !== undefined) {
             return results[0].output;
