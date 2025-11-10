@@ -22,6 +22,7 @@ export async function formatWorkspace(): Promise<void> {
     
     if (!workspaceFolders || workspaceFolders.length === 0) {
         vscode.window.showErrorMessage('No workspace folder found');
+
         return;
     }
 
@@ -30,6 +31,7 @@ export async function formatWorkspace(): Promise<void> {
 
     if (!enabled) {
         vscode.window.showWarningMessage('Prettier-ESLint is disabled');
+
         return;
     }
 
@@ -38,6 +40,7 @@ export async function formatWorkspace(): Promise<void> {
     
     if (files.length === 0) {
         vscode.window.showInformationMessage('No changed files found to format');
+
         return;
     }
 
@@ -143,6 +146,7 @@ function getChangedFiles(): vscode.Uri[] {
         
         // Check if file has a supported extension
         const ext = path.extname(document.fileName);
+
         if (SUPPORTED_EXTENSIONS.includes(ext)) {
             changedFiles.push(document.uri);
         }

@@ -24,6 +24,7 @@ function getESLintInstance(cwd: string): ESLint {
     if (!eslintCache.has(cwd)) {
         eslintCache.set(cwd, new ESLint({ cwd, fix: true }));
     }
+
     return eslintCache.get(cwd)!;
 }
 
@@ -62,6 +63,7 @@ async function formatWithPrettier(
     try {
         // Check cache first
         let options = prettierConfigCache.get(filePath);
+
         if (options === undefined) {
             // Not in cache, resolve and cache it
             options = await prettier.resolveConfig(filePath);
@@ -72,6 +74,7 @@ async function formatWithPrettier(
             ...options,
             filepath: filePath,
         });
+
         return formatted;
     } catch (error) {
         console.error('Prettier formatting error:', error);
@@ -88,9 +91,7 @@ async function fixWithESLint(
         // Use cached ESLint instance
         const eslint = getESLintInstance(cwd);
 
-        const results = await eslint.lintText(text, {
-            filePath,
-        });
+        const results = await eslint.lintText(text, {filePath,});
 
         if (results.length > 0 && results[0].output !== undefined) {
             return results[0].output;
@@ -99,6 +100,7 @@ async function fixWithESLint(
         return text;
     } catch (error) {
         console.error('ESLint fix error:', error);
+
         // Return the text unchanged if ESLint fails
         return text;
     }
